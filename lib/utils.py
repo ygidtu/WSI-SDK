@@ -15,7 +15,8 @@ __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 # Load .so files
 for i in os.listdir(__dir__):
-    CDLL(os.path.join(__dir__, i))
+    if ".so" in i and os.path.isfile(os.path.join(__dir__, i)):
+        CDLL(os.path.join(__dir__, i))
 
 _lib = cdll.LoadLibrary(os.path.join(__dir__, 'libkfbslide.so'))
 
