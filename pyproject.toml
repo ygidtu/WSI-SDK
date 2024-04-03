@@ -7,6 +7,7 @@ readme = "README.md"
 
 include = [
     {path = "lib"},
+    {path = "lib", format="*"},
 ]
 
 [tool.poetry.dependencies]
