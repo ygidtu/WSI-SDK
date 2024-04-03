@@ -9,7 +9,7 @@ from openslide import AbstractSlide, _OpenSlideMap
 from PIL import Image
 from tqdm import tqdm
 
-import utils
+from lib import utils
 
 
 class kfbRef:

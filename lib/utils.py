@@ -14,10 +14,10 @@ from PIL import Image
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 # Load .so files
-for i in os.listdir(os.path.join(__dir__, "lib")):
-    CDLL(os.path.join(__dir__, 'lib', i))
+for i in os.listdir(__dir__):
+    CDLL(os.path.join(__dir__, i))
 
-_lib = cdll.LoadLibrary(os.path.join(__dir__, 'lib/libkfbslide.so'))
+_lib = cdll.LoadLibrary(os.path.join(__dir__, 'libkfbslide.so'))
 
 
 class KFBSlideError(Exception):
