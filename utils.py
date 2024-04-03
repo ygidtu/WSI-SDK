@@ -1,13 +1,23 @@
+#!/usr/bin/env python3
+# -*-coding:utf-8 -*-
 from __future__ import division
 
 import os
 from ctypes import *
 from itertools import count
 
-from openslide import lowlevel
+import numpy as np
 
-print(os.getcwd())
-_lib = cdll.LoadLibrary('/home/liubo/kfbprocess/kfbslide/lib/libkfbslide.so')
+from openslide import lowlevel
+from PIL import Image
+
+__dir__ = os.path.dirname(os.path.abspath(__file__))
+
+# Load .so files
+for i in os.listdir(os.path.join(__dir__, "lib")):
+    CDLL(os.path.join(__dir__, 'lib', i))
+
+_lib = cdll.LoadLibrary(os.path.join(__dir__, 'lib/libkfbslide.so'))
 
 
 class KFBSlideError(Exception):
@@ -133,7 +143,6 @@ def kfbslide_read_region(osr, level, pos_x, pos_y):
     pixel = POINTER(c_ubyte)()
     if not _kfbslide_read_region(osr, level, pos_x, pos_y, byref(data_length), byref(pixel)):
         raise ValueError("Fail to read region")
-    import numpy as np
     return np.ctypeslib.as_array(pixel, shape=(data_length.value,))
 
 
@@ -142,8 +151,6 @@ def kfbslide_read_roi_region(osr, level, pos_x, pos_y, width, height):
     pixel = POINTER(c_ubyte)()
     if not _kfbslide_read_roi_region(osr, level, pos_x, pos_y, width, height, byref(data_length), byref(pixel)):
         raise ValueError("Fail to read roi region")
-    # img = PIL.Image.frombuffer('RGBA', (width, height), pixel, 'raw', 'RGBA', 0, 1)
-    import numpy as np
     return np.ctypeslib.as_array(pixel, shape=(data_length.value,))
 
 
@@ -187,9 +194,11 @@ def kfbslide_read_associated_image(osr, name):
     data_length = kfbslide_get_associated_image_dimensions(osr, name)[1]
     pixel = POINTER(c_ubyte)()
     _kfbslide_read_associated_image(osr, name, byref(pixel))
-    import numpy as np
     narray = np.ctypeslib.as_array(pixel, shape=(data_length,))
     from io import BytesIO
     buf = BytesIO(narray)
-    from PIL import Image
     return Image.open(buf)
+
+
+if __name__ == '__main__':
+    pass

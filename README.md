@@ -1,4 +1,13 @@
 # WSI-SDK
+
+## Changed by ygidtu
+
+1. remove scripts I dont use.
+2. change `get_thumbnail`
+3. change dll load logic
+4. use poetry to manage requirements
+
+
 WSI(Whole slide image)-SDK on Linux 顾名思义,先挖个坑以后再填。
 
 **Content**

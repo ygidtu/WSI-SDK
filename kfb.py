@@ -1,9 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 import io
 
-from PIL import Image
-from openslide import AbstractSlide, _OpenSlideMap
+import numpy as np
+import cv2
 
-from kfbslide import utils
+from openslide import AbstractSlide, _OpenSlideMap
+from PIL import Image
+from tqdm import tqdm
+
+from generating_tile import utils
 
 
 class kfbRef:
@@ -51,16 +57,6 @@ class TSlide(AbstractSlide):
     def get_best_level_for_downsample(self, downsample):
         return utils.kfbslide_get_best_level_for_downsample(self._osr, downsample)
 
-    # def read_region(self, location, level, size):
-    #     import pdb
-    #     #pdb.set_trace()
-    #     x = int(location[0])
-    #     y = int(location[1])
-    #     img_index = kfbRef.img_count
-    #     kfbRef.img_count += 1
-    #     # print("img_index : ", img_index, "Level : ", level, "Location : ", x , y)
-    #     return utils.kfbslide_read_region(self._osr, level, x, y)
-
     def read_region(self, location, level, size):
         # import pdb
 
@@ -73,13 +69,36 @@ class TSlide(AbstractSlide):
 
         return Image.open(io.BytesIO(utils.kfbslide_read_roi_region(self._osr, level, x, y, width, height)))
 
+    def read_whole_image(self, level = 0):
+        patch_size = 4000
+        [x, y] = self.level_dimensions[level]
+        # print("Resolution --> {}, {}".format(x, y))
+        image = np.zeros([y, x, 3], np.uint8)
+        x_range = list(range(0, x, patch_size))
+        y_range = list(range(0, y, patch_size))
+        for i in tqdm(x_range):
+            for j in y_range:
+                x_size = y_size = patch_size
+                if i == max(x_range):
+                    x_size = x - i
+                if j == max(y_range):
+                    y_size = y - j
+                patch = np.array(self.read_region((i, j), level, (x_size, y_size)))
+                if patch.shape[2] == 4:
+                    r, g, b, a = cv2.split(patch)
+                    patch = cv2.merge([r, g, b])
+                image[j:j + y_size, i:i + x_size, :] = patch
+        return image
+
     def get_thumbnail(self, size):
         """Return a PIL.Image containing an RGB thumbnail of the image.
 
         size:     the maximum size of the thumbnail."""
+        if isinstance(size, int) or isinstance(size, float):
+            size = [size, size]
 
-        thumb = self.associated_images[b'thumbnail']
-        return thumb
+        img = Image.fromarray(self.read_whole_image(0))
+        return img.resize(size)
 
 
 class _KfbPropertyMap(_OpenSlideMap):
@@ -103,47 +122,5 @@ class _AssociatedImageMap(_OpenSlideMap):
         return utils.kfbslide_read_associated_image(self._osr, key)
 
 
-def open_kfbslide(filename):
-    try:
-        return TSlide(filename)
-    except Exception:
-        return None
-
-import numpy as np
-class kfb:
-    def __init(self,path):
-        self.slide = TSlide(path)
-        self.patch_size = 4000
-        
-    def header(self):
-        header = {}
-        for key, val in self.slide.associated_images.items():
-            print(key, " --> ", val.size)
-            header[key] = np.array(val)
-        return header
-
-    def read(self,level = 0):
-        [x, y] = self.slide.level_dimensions[level]
-        print("Resolution --> {}, {}".format(x,y))
-        image = np.zeros([y,x,3],np.uint8)
-        x_range = list(range(0,x,patch_size))
-        y_range = list(range(0,y,patch_size))
-        for i in x_range:
-            for j in y_range:
-                x_size = y_size = patch_size
-                if i == max(x_range):
-                    x_size = x-i
-                if j == max(y_range):
-                    y_size = y-j
-                patch =  np.array(self.slide.read_region((i ,j) ,level ,(x_size ,y_size)))
-                if patch.shape[2] == 4:
-                    r, g, b, a = cv2.split(patch)
-                    patch = cv2.merge([r, g, b])
-                image[j:j+y_size,i:i+x_size,:] = patch 
-        return image
-
-
 if __name__ == '__main__':
-    _, image = kfbread('./2018-08-29 17_11_05.kfb')
-    import cv2
-    cv2.imwrite('./2018-08-29 17_11_05.jpg',image)
+    pass
