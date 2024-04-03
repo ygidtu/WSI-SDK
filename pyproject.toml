@@ -6,8 +6,7 @@ authors = ["ygidtu <ygidtu@gmail.com>"]
 readme = "README.md"
 
 include = [
-    {path = "lib/*.so", format = "wheel"},
-    {path = "lib/*.so.9", format = "wheel"}
+    {path = "lib"},
 ]
 
 [tool.poetry.dependencies]
