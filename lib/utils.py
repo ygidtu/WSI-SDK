@@ -14,10 +14,7 @@ from PIL import Image
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 # Load .so files
-for i in os.listdir(__dir__):
-    if ".so" in i and os.path.isfile(os.path.join(__dir__, i)):
-        CDLL(os.path.join(__dir__, i))
-
+os.environ["LD_LIBRARY_PATH"] = ":".join([__dir__, os.environ["LD_LIBRARY_PATH"]])
 _lib = cdll.LoadLibrary(os.path.join(__dir__, 'libkfbslide.so'))
 
 
